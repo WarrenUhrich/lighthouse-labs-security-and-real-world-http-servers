@@ -6,6 +6,7 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
+const bcrypt = require('bcryptjs');
 
 // Helper Function(s)
 const getCurrentUser = require('./helpers/get-current-user');
@@ -45,8 +46,8 @@ app.listen(PORT, () => {
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const users = [
-    {id: 1, name: 'Warren', pass: 'Password123'},
-    {id: 2, name: 'Duy', pass: 'b3tt3rp4ss'},
+    {id: 1, name: 'Warren', pass: '$2a$10$ruNeBd4yxOQ1yAKYi4X9YuRkzQsX/OY9cmVWywec6s9WGsio4atEG'},
+    {id: 2, name: 'Duy', pass: '$2a$10$VS.694Scch1sMqcDYYxv.uptsi6LhYovILN79GokGMEs4Rtsr5fJC'},
 ];
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -89,7 +90,7 @@ app.post('/sign-in', (req, res) => {
     let currentUser = false;
 
     for (const user of users) {
-        if (user.name == username && user.pass == password) {
+        if (user.name == username && bcrypt.compareSync(password, user.pass)) {
             currentUser = user;
         }
     }
@@ -127,12 +128,19 @@ app.post('/register', (req, res) => {
     // Real world... check if username already exists...
     // Real world... generate more unique ID, etc.
 
+    // Create hash for password.
+    const salt = bcrypt.genSaltSync(10);
+    const hash = bcrypt.hashSync(password, salt);
+
     // Creating and adding the new user.
     users.push({
         id: newID,
         name: username,
-        pass: password
+        //pass: password
+        pass: hash
     });
+
+    console.log('new user added:', users);
 
     // Sign the user in.
     res.cookie('userID', newID);
