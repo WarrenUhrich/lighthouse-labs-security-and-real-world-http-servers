@@ -3,3 +3,4 @@
 * [ ] Storing passwords
 * [ ] Encrypted cookies
 * [ ] HTTP Secure (HTTPS)
+
