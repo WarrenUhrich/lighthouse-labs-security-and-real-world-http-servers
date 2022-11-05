@@ -1,6 +1,18 @@
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// Dependencies
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// NPM Packages
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
+
+// Helper Function(s)
+const getCurrentUser = require('./helpers/get-current-user');
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// Configuration
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const PORT = 3000;
 const app = express();
@@ -43,15 +55,7 @@ const users = [
 
 // Home page (PROTECTED.)
 app.get('/', (req, res) => {
-    const userID = req.cookies.userID;
-
-    let currentUser = false;
-
-    for (const user of users) {
-        if (userID == user.id) {
-            currentUser = user;
-        }
-    }
+    const currentUser = getCurrentUser(req.cookies.userID, users);
 
     if (!currentUser) {
         res.redirect('/sign-in');
@@ -67,15 +71,7 @@ app.get('/', (req, res) => {
 
 // Display the Sign-In form.
 app.get('/sign-in', (req, res) => {
-    const userID = req.cookies.userID;
-
-    let currentUser = false;
-
-    for (const user of users) {
-        if (userID == user.id) {
-            currentUser = user;
-        }
-    }
+    const currentUser = getCurrentUser(req.cookies.userID, users);
 
     const templateVars = {
         pageName: 'Sign In',
