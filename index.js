@@ -4,9 +4,10 @@
 
 // NPM Packages
 const express = require('express');
-const cookieParser = require('cookie-parser');
+// const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const bcrypt = require('bcryptjs');
+const cookieSession = require('cookie-session');
 
 // Helper Function(s)
 const getCurrentUser = require('./helpers/get-current-user');
@@ -24,8 +25,12 @@ const app = express();
 
 app.use(express.static('public')); // Choose a directory to serve files from... (images, CSS, JS, videos.)
 app.use(express.urlencoded({extended: true})); // Gather form submission data.
-app.use(cookieParser()); // Help with cookies!
+// app.use(cookieParser()); // Help with cookies!
 app.use(morgan('dev')); // Helpful logging, showing method, path, and status codes.
+app.use(cookieSession({
+    name: 'session', // This is the cookie key name we see in the browser.
+    keys: ['my secret key'],
+}));
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // Template Engine
@@ -56,7 +61,8 @@ const users = [
 
 // Home page (PROTECTED.)
 app.get('/', (req, res) => {
-    const currentUser = getCurrentUser(req.cookies.userID, users);
+    // const currentUser = getCurrentUser(req.cookies.userID, users);
+    const currentUser = getCurrentUser(req.session.userID, users);
 
     if (!currentUser) {
         res.redirect('/sign-in');
@@ -72,7 +78,8 @@ app.get('/', (req, res) => {
 
 // Display the Sign-In form.
 app.get('/sign-in', (req, res) => {
-    const currentUser = getCurrentUser(req.cookies.userID, users);
+    // const currentUser = getCurrentUser(req.cookies.userID, users);
+    const currentUser = getCurrentUser(req.session.userID, users);
 
     const templateVars = {
         pageName: 'Sign In',
@@ -96,7 +103,8 @@ app.post('/sign-in', (req, res) => {
     }
 
     if (currentUser) {
-        res.cookie('userID', currentUser.id);
+        // res.cookie('userID', currentUser.id);
+        req.session.userID = currentUser.id; // Assign session value.
     }
 
     console.log('User:', username, 'Password:', password);
@@ -143,7 +151,8 @@ app.post('/register', (req, res) => {
     console.log('new user added:', users);
 
     // Sign the user in.
-    res.cookie('userID', newID);
+    // res.cookie('userID', newID);
+    req.session.userID = newID;
 
     // Send'em home!
     res.redirect('/');
@@ -151,6 +160,7 @@ app.post('/register', (req, res) => {
 
 // Handle sign-out.
 app.post('/sign-out', (req, res) => {
-    res.clearCookie('userID'); // Destroy the cookie (by key)!
+    // res.clearCookie('userID'); // Destroy the cookie (by key)!
+    req.session = null; // Destroy the session.
     res.redirect('/'); // Send'em home!
 });
