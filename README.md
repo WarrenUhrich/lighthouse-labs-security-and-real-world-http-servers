@@ -1,2 +1,5 @@
-# lighthouse-labs-security-and-real-world-http-servers
-Lighthouse Labs "Security and Real World HTTP Servers" lecture. 
+# Security & Real World HTTP Servers
+
+* [ ] Storing passwords
+* [ ] Encrypted cookies
+* [ ] HTTP Secure (HTTPS)

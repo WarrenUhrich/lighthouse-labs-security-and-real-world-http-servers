@@ -1,0 +1,25 @@
+<nav>
+    <h2>Web Site Navigation</h2>
+    <ul>
+        <% if (user) { /* User is signed in... */ %>
+            <li>
+                <a href="/">Home</a>
+            </li>
+            <li>
+                <form method="POST" action="/sign-out">
+                    <input type="submit" value="Sign Out">
+                </form>
+            </li>
+            
+        <% } else { /* User is signed out... */ %>
+            <li>
+                <a href="/sign-in">Sign In</a>
+            </li>
+            <li>
+                <a href="/register">
+                    Register
+                </a>
+            </li>
+        <% } %>
+    </ul>
+</nav>

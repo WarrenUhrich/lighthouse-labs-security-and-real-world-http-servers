@@ -1,0 +1,23 @@
+<%- include('partials/_head.ejs') %>
+<%- include('partials/_navigation.ejs') %>
+
+<h2>Welcome to our Application</h2>
+
+<% if (user) { // If signed in... %>
+
+    <p>
+        Currently signed in as:
+        <%= user.name %>
+        (<%= user.id %>)
+    </p>
+
+<% } else { // If the user is not signed in... %>
+
+    <p>
+        Please
+        <a href="/sign-in">Sign In</a>
+    </p>
+
+<% } %>
+
+<%- include('partials/_footer.ejs') %>
