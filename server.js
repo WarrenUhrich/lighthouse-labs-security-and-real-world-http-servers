@@ -6,6 +6,7 @@
 const express = require('express');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcryptjs');
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // Configuration
@@ -16,6 +17,10 @@ const app = express();
 
 // configure view engine
 app.set('view engine', 'ejs');
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// Middleware
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // set up middleware
 app.use(morgan('dev'));
@@ -34,7 +39,7 @@ const users = {
   abc: {
     id: 'abc',
     email: 'a@a.com',
-    password: '1234'
+    password: '$2a$10$fC14a1sE8HizTc87lDwOXu.tUnOK1Uj705yXXD/nfUxR3uOPjYBIS'
   }
 };
 
@@ -95,8 +100,11 @@ app.post('/login', (req, res) => {
 
   // console.log('foundUser', foundUser);
 
+  // bcrypt                            entered pass, hash
+  const passwordMatch = bcrypt.compareSync(password, foundUser.password); // true || false
+
   // do the passwords NOT match
-  if (foundUser.password !== password) {
+  if (passwordMatch === false) {
     return res.status(400).send('the passwords do not match');
   }
 
