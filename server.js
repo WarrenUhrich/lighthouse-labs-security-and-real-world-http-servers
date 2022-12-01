@@ -135,15 +135,21 @@ app.post('/register', (req, res) => {
   // create a random id
   const id = Math.random().toString(36).substring(2, 5);
 
+  // hash our password
+  const salt = bcrypt.genSaltSync(10);
+  const hash = bcrypt.hashSync(password, salt);
+
   // create a new user object
   const user = {
     id: id,
     email: email,
-    password: password
+    password: hash // Store our hashed password instead of our plain text!
   };
 
   // add the new user object to `users`
   users[id] = user;
+
+  console.log('Updated Users after Register:', users);
 
   // redirect the client to the login page
   res.redirect('/login');
