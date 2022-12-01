@@ -5,8 +5,9 @@
 // NPM Packages
 const express = require('express');
 const morgan = require('morgan');
-const cookieParser = require('cookie-parser');
+// const cookieParser = require('cookie-parser');
 const bcrypt = require('bcryptjs');
+const cookieSession = require('cookie-session');
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // Configuration
@@ -24,8 +25,12 @@ app.set('view engine', 'ejs');
 
 // set up middleware
 app.use(morgan('dev'));
-app.use(cookieParser());
+// app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieSession({
+  name: 'express_app_session_id',
+  keys: ['key1', 'key2']
+}));
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // Database
@@ -50,7 +55,7 @@ const users = {
 // GET /protected
 app.get('/protected', (req, res) => {
   // retrieve the user's cookie
-  const userId = req.cookies.userId;
+  const userId = req.session.userId;
 
   // check if the user is logged in
   if (!userId) {
@@ -110,7 +115,8 @@ app.post('/login', (req, res) => {
 
   // happy path! the user is who they say they are!
   // set the cookie
-  res.cookie('userId', foundUser.id);
+  // res.cookie('userId', foundUser.id);
+  req.session.userId = foundUser.id;
 
   // redirect the user
   res.redirect('/protected');
@@ -158,7 +164,8 @@ app.post('/register', (req, res) => {
 // POST /logout
 app.post('/logout', (req, res) => {
   // clear the user's cookie
-  res.clearCookie('userId');
+  // res.clearCookie('userId');
+  req.session = null; // Delete current session
 
   // send the user somewhere
   res.redirect('/login');
@@ -170,7 +177,8 @@ app.get('/languages/:languagePref', (req, res) => {
   const languagePref = req.params.languagePref;
 
   // set a cookie in the user's browser based off their language preference
-  res.cookie('language', languagePref);
+  // res.cookie('language', languagePref);
+  req.session.language = languagePref;
 
   // redirect the user to the homepage
   res.redirect('/home');
@@ -178,9 +186,9 @@ app.get('/languages/:languagePref', (req, res) => {
 
 // GET /home
 app.get('/home', (req, res) => {
-  // console.log('req.cookies', req.cookies);
+  // console.log('req.session', req.session);
 
-  const languagePref = req.cookies.language;
+  const languagePref = req.session.language;
 
   const templateVars = {
     heading: languages.homeHeadings[languagePref],
@@ -194,7 +202,7 @@ app.get('/home', (req, res) => {
 
 // GET /about
 app.get('/about', (req, res) => {
-  const languagePref = req.cookies.language;
+  const languagePref = req.session.language;
 
   const templateVars = {
     heading: languages.aboutHeadings[languagePref],
