@@ -1,6 +1,7 @@
 const express = require('express');
 const morgan = require('morgan');
-const cookieParser = require('cookie-parser');
+// const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -22,7 +23,18 @@ app.set('view engine', 'ejs');
 
 app.use(morgan('dev'));
 app.use(express.urlencoded({ extended: false })); // creates/populates req.body
-app.use(cookieParser()); // create/populate req.cookies
+// app.use(cookieParser()); // create/populate req.cookies
+app.use(cookieSession({
+  name: 'authentication-app-session-cookie',
+  keys: [
+    'sdkljflsdkfjgunlserfalfuijgurtnauewhfiwe',
+    'sdfksjdfl kjsnhtyhgs h tyesbg krua gaer ',
+    ' fkdsfjg kjgfg;akfjd jafg l; fdslf jsdf '
+  ],
+
+  // Cookie Options
+  maxAge: 7 * 24 * 60 * 60 * 1000 // 24 hours
+}));
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Database
@@ -89,7 +101,8 @@ app.post('/login', (req, res) => {
 
   // HAPPY PATH!!! 🎉
   // set a cookie
-  res.cookie('userId', foundUser.id); // async
+  // res.cookie('userId', foundUser.id); // async
+  req.session.userId = foundUser.id;
   
   res.redirect('/protected');
 });
@@ -101,7 +114,8 @@ app.post('/login', (req, res) => {
 // protected endpoint
 app.get('/protected', (req, res) => {
   // grab the userId from the cookie
-  const userId = req.cookies.userId;
+  // const userId = req.cookies.userId;
+  const userId = req.session.userId;
 
   // do they NOT have a cookie?
   if (!userId) {
@@ -126,7 +140,9 @@ app.get('/protected', (req, res) => {
 // logout
 app.post('/logout', (req, res) => {
   // clear the user's cookie
-  res.clearCookie('userId');
+  // res.clearCookie('userId');
+  req.session.userId = null;
+  // req.session = null; // this drops the WHOLE session
 
   // redirect them somewhere
   res.redirect('/login');
