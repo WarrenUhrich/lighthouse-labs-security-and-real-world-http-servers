@@ -1,39 +1,60 @@
 const express = require('express');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcryptjs');
 
-// constants
+////////////////////////////////////////////////////////////////////////////////////////
+// Constants
+////////////////////////////////////////////////////////////////////////////////////////
+
 const app = express();
 const port = 8001;
 
-// configuration
+////////////////////////////////////////////////////////////////////////////////////////
+// Configuration
+////////////////////////////////////////////////////////////////////////////////////////
+
 app.set('view engine', 'ejs');
 
-// middleware
+////////////////////////////////////////////////////////////////////////////////////////
+// Middleware
+////////////////////////////////////////////////////////////////////////////////////////
+
 app.use(morgan('dev'));
 app.use(express.urlencoded({ extended: false })); // creates/populates req.body
-// app.use(express.json());
 app.use(cookieParser()); // create/populate req.cookies
 
-// data
+////////////////////////////////////////////////////////////////////////////////////////
+// Database
+////////////////////////////////////////////////////////////////////////////////////////
+
 const users = {
   abc: {
     id: "abc",
     username: "alice",
-    password: "123",
+    password: "$2a$10$Yrgaf4nAz27EXPvikzBUW.bve2xH9KAidgHDfgtlDNEN44IamaRTG", // 123
   },
   def: {
     id: "def",
     username: "bob",
-    password: "456",
+    password: "$2a$10$ggJxUMZVhZSzM4tC5rwbTOldPf4k/gjBvGFKPRciPsKU60e9/tZUC", // 456
   },
 };
 
-// login endpoints
+////////////////////////////////////////////////////////////////////////////////////////
+// Routes
+////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Login Routes
+ */
+
+// DISPLAY of the login form
 app.get('/login', (req, res) => {
   res.render('login');
 });
 
+// SUBMISSION of the login form
 app.post('/login', (req, res) => {
   // grab the info from the body
   const username = req.body.username;
@@ -61,7 +82,8 @@ app.post('/login', (req, res) => {
   }
 
   // are the passwords NOT the same?
-  if (foundUser.password !== password) {
+  // if (foundUser.password !== password) {
+  if(!bcrypt.compareSync(password, foundUser.password)) {
     return res.status(400).send('the passwords do not match');
   }
 
@@ -71,6 +93,10 @@ app.post('/login', (req, res) => {
   
   res.redirect('/protected');
 });
+
+/**
+ * Protected Page
+ */
 
 // protected endpoint
 app.get('/protected', (req, res) => {
@@ -93,6 +119,10 @@ app.get('/protected', (req, res) => {
   res.render('protected', templateVars);
 });
 
+/**
+ * Logout
+ */
+
 // logout
 app.post('/logout', (req, res) => {
   // clear the user's cookie
@@ -102,11 +132,16 @@ app.post('/logout', (req, res) => {
   res.redirect('/login');
 });
 
-// register endpoints
+/**
+ * Registration
+ */
+
+// DISPLAY of register form
 app.get('/register', (req, res) => {
   res.render('register');
 });
 
+// SUBMISSION of register form
 app.post('/register', (req, res) => {
   // grab the info from the body
   const username = req.body.username;
@@ -137,20 +172,29 @@ app.post('/register', (req, res) => {
   // create a new user object
   const id = Math.random().toString(36).substring(2, 5); // 3 characters
   
+  const salt = bcrypt.genSaltSync(10);
+  const hash = bcrypt.hashSync(password, salt);
+
   const newUser = {
     id: id,
     username: username,
-    password: password
+    password: hash, // Store the HASHED password!
+    // password: password
   };
 
   // update the users database
   users[id] = newUser;
+  console.log('users AFTER REGISTRATION:', users);
 
   // res.cookie('userId', id);
   // res.redirect('/protected');
 
   res.redirect('/login');
 });
+
+////////////////////////////////////////////////////////////////////////////////////////
+// Listener (Initiate Server)
+////////////////////////////////////////////////////////////////////////////////////////
 
 app.listen(port, () => {
   console.log(`app is listening on port ${port}`);
