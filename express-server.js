@@ -5,7 +5,8 @@
 //////////////////////////////////////////////////////////////////////////////
 
 const express = require('express');
-const cookieParser = require('cookie-parser');
+// const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 const morgan = require('morgan');
 const bcrypt = require('bcryptjs');
 
@@ -27,8 +28,15 @@ app.set('view engine', 'ejs');
 //////////////////////////////////////////////////////////////////////////////
 
 app.use(express.urlencoded({extended: true}));
-app.use(cookieParser());
+// app.use(cookieParser());
 app.use(morgan('dev'));
+app.use(cookieSession({
+    name: 'express-server-session',
+    keys: ['my-key'],
+  
+    // Cookie Options
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }))
 
 //////////////////////////////////////////////////////////////////////////////
 // "Database"
@@ -56,19 +64,6 @@ app.listen(PORT, () => {
 //////////////////////////////////////////////////////////////////////////////
 // Routes
 //////////////////////////////////////////////////////////////////////////////
-
-app.get('/set-example-cookie', (req, res) => {
-    res.cookie('myFirstCookie', 'My example value!'); // Tell the browser to set a cookie key-value pair
-    res.status(200).end('<p>Example cookie should be set!</p>');
-});
-
-app.get('/read-example-cookie', (req, res) => {
-    const myCookieVal = req.cookies.myFirstCookie; // Read from a browser request the current key-value pair
-    res.status(200).end(
-        `<p>myFirstCookie = ${myCookieVal}</p>`
-    );
-});
-
 
 /**
  * Sign-In Form
@@ -101,7 +96,8 @@ app.post('/sign-in', (req, res) => {
         return res.status(400).end('<p>Incorrect password.</p>');
     }
 
-    res.cookie('username', username);
+    // res.cookie('username', username);
+    req.session.username = username; // Will be encrypted!
 
     // res.status(200).end('<p>Success!</p>');
     res.redirect('/protected');
@@ -112,7 +108,7 @@ app.post('/sign-in', (req, res) => {
  */
 
 app.get('/protected', (req, res) => {
-    const username = req.cookies.username;
+    const username = req.session.username; // req.cookies.username;
     const user = users[username];
 
     if(!user) {
@@ -168,7 +164,8 @@ app.post('/register', (req, res) => {
 
     // res.redirect('/sign-in');
 
-    res.cookie('username', username);
+    // res.cookie('username', username);
+    req.session.username = username;
     res.redirect('/protected');
 });
 
@@ -177,6 +174,7 @@ app.post('/register', (req, res) => {
  */
 
 app.post('/sign-out', (req, res) => {
-    res.clearCookie('username'); // Asking the browser to delete this key-value pair
+    // res.clearCookie('username'); // Asking the browser to delete this key-value pair
+    req.session = null;
     res.redirect('/sign-in');
 });
