@@ -7,6 +7,7 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
+const bcrypt = require('bcryptjs');
 
 //////////////////////////////////////////////////////////////////////////////
 // Set-Up
@@ -36,11 +37,11 @@ app.use(morgan('dev'));
 const users = {
     alice: {
         username: 'alice',
-        password: 'password123'
+        password: bcrypt.hashSync('password123', bcrypt.genSaltSync(10))
     },
     sam: {
         username: 'sam',
-        password: 'abc123'
+        password: bcrypt.hashSync('abc123', bcrypt.genSaltSync(10))
     }
 };
 
@@ -94,7 +95,9 @@ app.post('/sign-in', (req, res) => {
         return res.status(400).end('<p>No user matching that username was found.</p>');
     }
 
-    if(user.password !== password) {
+    const isCorrectPassword = bcrypt.compareSync(password, user.password);
+
+    if(isCorrectPassword === false) {
         return res.status(400).end('<p>Incorrect password.</p>');
     }
 
@@ -146,10 +149,13 @@ app.post('/register', (req, res) => {
         res.status(400).end('<p>A user with this name already exists.</p>');
     }
 
+    const salt = bcrypt.genSaltSync(10);
+    const hashedPassword = bcrypt.hashSync(password, salt);
+
     // Create new user object (make sure to match users format from above)
     const newUser = {
         username: username,
-        password: password
+        password: hashedPassword
     };
 
     // sam: {
