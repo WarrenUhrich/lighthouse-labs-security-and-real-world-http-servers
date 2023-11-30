@@ -1,6 +1,6 @@
-# Security & Real World HTTP Servers
+# Lighthouse Labs | Security & Real World HTTP Servers
 
-[GitHub Repository Branch](https://github.com/WarrenUhrich/lighthouse-labs-security-and-real-world-http-servers/tree/2023.11.30-web-flex-day-16october2023) | [Vimeo Video Recording (Coming Soon)](#coming-soon)
+[GitHub Repository Branch](https://github.com/WarrenUhrich/lighthouse-labs-security-and-real-world-http-servers/tree/2023.11.30-web-flex-day-16october2023) | [Vimeo Video Recording](https://vimeo.com/890105735/0a6e636d56?share=copy)
 
 * [X] Storing passwords
 * [X] Encrypted cookies
