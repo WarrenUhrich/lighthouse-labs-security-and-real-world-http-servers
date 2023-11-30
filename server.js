@@ -4,8 +4,9 @@
 
 const express = require('express');
 const morgan = require('morgan');
-const cookieParser = require('cookie-parser');
+// const cookieParser = require('cookie-parser');
 const bcrypt = require('bcryptjs');
+const cookieSession = require('cookie-session');
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Variables/Set-Up
@@ -60,7 +61,14 @@ app.set('view engine', 'ejs');
 
 app.use(morgan('dev'));
 app.use(express.urlencoded({ extended: false })); // creates and populates req.body
-app.use(cookieParser()); // creates and populates req.cookies
+// app.use(cookieParser()); // creates and populates req.cookies
+app.use(cookieSession({ // creates and populates req.session
+  name: 'session',
+  keys: ['our-session-key'],
+
+  // Cookie Options
+  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}));
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Routes
@@ -111,7 +119,8 @@ app.post('/login', (req, res) => {
   // happy path! the user is who they say they are!
 
   // set the cookie
-  res.cookie('userId', foundUser.id);
+  // res.cookie('userId', foundUser.id);
+  req.session.userId = foundUser.id;
   
   // redirect the user somewhere
   res.redirect('/protected');
@@ -120,7 +129,8 @@ app.post('/login', (req, res) => {
 // GET /protected
 app.get('/protected', (req, res) => {
   // check for a cookie
-  const userId = req.cookies.userId;
+  // const userId = req.cookies.userId;
+  const userId = req.session.userId;
 
   // do they NOT have a cookie?
   if (!userId) {
@@ -140,7 +150,9 @@ app.get('/protected', (req, res) => {
 // POST /logout
 app.post('/logout', (req, res) => {
   // clear the cookie
-  res.clearCookie('userId');
+  // res.clearCookie('userId');
+  // req.session.userId = undefined;
+  req.session = null; // Destroys session.
 
   // send the user somewhere
   res.redirect('/login');
@@ -186,7 +198,7 @@ app.post('/register', (req, res) => {
   const user = {
     id: id,
     email: email,
-    password: password,
+    password: bcrypt.hashSync(password, salt),
   };
 
   // update the users object
