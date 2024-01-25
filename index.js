@@ -1,5 +1,6 @@
 const express = require("express");
-const cookieParser = require("cookie-parser");
+// const cookieParser = require("cookie-parser");
+const cookieSession = require('cookie-session');
 
 const thieves = require("./data/thiefData");
 const generateThiefHelpers = require("./helpers/thiefHelpers");
@@ -10,15 +11,24 @@ const app = express();
 const port = 8080;
 
 app.use(express.static("public"));
-app.use(cookieParser());
+// app.use(cookieParser());
 app.use(express.urlencoded({ extended: false })); // Take a form string and convert it to an object
+app.use(cookieSession({
+    name: 'thief-session', // The NAME/KEY of the cookie we see in-browser.
+    keys: ['we', 'are', 'a', 'thief!'],
+  
+    // Cookie Options
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }));
 app.set("view engine", "ejs");
 
 // Cookies? Store userId / userEmail (id), read cookie
 // HTTP ?
 app.get("/", (req, res) => {
-  console.log(req.cookies);
-  const { userEmail } = req.cookies;
+  // console.log(req.cookies);
+  // const { userEmail } = req.cookies;
+  console.log(req.session);
+  const { userEmail } = req.session;
 
   const { user } = fetchUserByEmail(userEmail);
 
@@ -35,7 +45,8 @@ app.post("/login", (req, res) => {
   const { user, error } = authenticateUser(email, password);
 
   if (user) {
-    res.cookie("userEmail", user.email);
+    // res.cookie("userEmail", user.email);
+    req.session.userEmail = user.email;
   }
 
   if (error) {
@@ -46,13 +57,15 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("userEmail");
+  // res.clearCookie("userEmail");
+  req.session = null;
 
   return res.redirect("/");
 });
 
 app.get("/register", (req, res) => {
-  const { userEmail } = req.cookies;
+  // const { userEmail } = req.cookies;
+  const { userEmail } = req.session;
 
   const { user } = fetchUserByEmail(userEmail);
 
@@ -73,7 +86,8 @@ app.post("/register", (req, res) => {
   }
   console.log(thieves);
   console.log(user);
-  res.cookie("userEmail", user.email);
+  // res.cookie("userEmail", user.email);
+  req.session.userEmail = user.email;
 
   return res.redirect("/");
 });
