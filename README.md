@@ -1,4 +1,4 @@
-# Security & Real World HTTP Servers
+# Lighthouse Labs | Security & Real World HTTP Servers
 
 * [ ] Storing passwords
 * [ ] Encrypted cookies
